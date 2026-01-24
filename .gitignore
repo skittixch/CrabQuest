@@ -1,0 +1,28 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# IDE/Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Project Specific
+.gemini/
+brain/
+*.log
+tmp/
+dist/
+build/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Godot
+.godot/
+*.tmp
