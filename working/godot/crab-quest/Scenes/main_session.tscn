@@ -1,0 +1,33 @@
+[gd_scene load_steps=7 format=3 uid="uid://cj2m7k7u0sbrq"]
+
+[ext_resource type="Script" uid="uid://cbh0kt8xfo4mv" path="res://Scenes/main_session.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://Core/Player.tscn" id="2_player"]
+[ext_resource type="Script" uid="uid://bie3ruknk86u" path="res://Core/gameplay_camera.gd" id="3_camera"]
+[ext_resource type="PackedScene" path="res://Core/input_layer.tscn" id="4_input"]
+[ext_resource type="PackedScene" uid="uid://1bowvxdgmxdl" path="res://Core/weapon_ball.tscn" id="5_weapon"]
+[ext_resource type="Script" uid="uid://cj48qrkctv52" path="res://Core/chain.gd" id="6_chain"]
+[ext_resource type="PackedScene" path="res://Systems/LiquidMeter/liquid_meter_ui.tscn" id="7_meter_ui"]
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="LiquidMeterUI" parent="." instance=ExtResource("7_meter_ui")]
+
+[node name="Player" parent="." node_paths=PackedStringArray("camera", "weapon_ball", "chain") instance=ExtResource("2_player")]
+camera = NodePath("../GameplayCamera")
+weapon_ball = NodePath("../MorningstarPhysics")
+chain = NodePath("../Chain")
+
+[node name="GameplayCamera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.866025, 0.5, 0, -0.5, 0.866025, 0, 20, 160)
+script = ExtResource("3_camera")
+
+[node name="CurrentEnvironment" type="Node3D" parent="."]
+
+[node name="InputLayer" parent="." instance=ExtResource("4_input")]
+
+[node name="MorningstarPhysics" parent="." instance=ExtResource("5_weapon")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1)
+
+[node name="Chain" type="Node3D" parent="."]
+script = ExtResource("6_chain")

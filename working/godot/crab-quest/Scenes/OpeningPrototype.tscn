@@ -1,0 +1,81 @@
+[gd_scene load_steps=9 format=3 uid="uid://cu42aydggo5i2"]
+
+[ext_resource type="Texture2D" uid="uid://d0dd1uh0qlsqj" path="res://Assets/Backgrounds/sky.png" id="1_a0po3"]
+[ext_resource type="Texture2D" uid="uid://c23mfokhdrys2" path="res://Assets/Backgrounds/Leaves.png" id="2_72cyg"]
+[ext_resource type="Texture2D" uid="uid://cb3wl8dqistjj" path="res://Assets/Backgrounds/Sign.png" id="3_xh3fo"]
+[ext_resource type="Texture2D" uid="uid://dy6nmk7arkgey" path="res://Assets/vines.png" id="4_o8m08"]
+[ext_resource type="Texture2D" uid="uid://wlt007j68f7" path="res://Assets/plant3.png" id="5_imo6l"]
+[ext_resource type="PackedScene" uid="uid://be52e0be3xlyq" path="res://Core/character.tscn" id="6_char"]
+
+[sub_resource type="Animation" id="Animation_7oq5n"]
+resource_name = "new_animation"
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_7le2c"]
+_data = {
+&"new_animation": SubResource("Animation_7oq5n")
+}
+
+[sub_resource type="BoxMesh" id="BoxMesh_0itqv"]
+
+[node name="OpeningPrototype" type="Node3D"]
+
+[node name="RetroCamera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.99965733, -0.02617695, 0, 0.02617695, 0.99965733, 5.4, -0.725, 82.647)
+current = true
+fov = 45.0
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="RetroCamera"]
+libraries = {
+&"": SubResource("AnimationLibrary_7le2c")
+}
+
+[node name="SkySprite" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 45.84906, -883.7435)
+pixel_size = 2.0
+texture = ExtResource("1_a0po3")
+
+[node name="Leaves" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.089197, -1.1526372, 3.3204308)
+pixel_size = 0.2
+texture_filter = 0
+texture = ExtResource("2_72cyg")
+
+[node name="CSGMesh3D" type="CSGMesh3D" parent="Leaves"]
+transform = Transform3D(250, 0, 0, 0, 1, 0, 0, 0, 250, -8.996952, -12.084795, -3.678256)
+mesh = SubResource("BoxMesh_0itqv")
+
+[node name="Leaves2" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.013226, -8.676641, -52.89078)
+pixel_size = 0.1
+texture_filter = 0
+texture = ExtResource("2_72cyg")
+
+[node name="Sign" type="Sprite3D" parent="."]
+transform = Transform3D(0.9590227, -0.28332916, 0, 0.28332916, 0.9590227, 0, 0, 0, 1, 9.577515, 1.2229309, -55.641388)
+pixel_size = 0.1
+texture_filter = 0
+texture = ExtResource("3_xh3fo")
+
+[node name="Sign2" type="Sprite3D" parent="."]
+transform = Transform3D(0.9590227, -0.28332916, 0, 0.28332916, 0.9590227, 0, 0, 0, 1, 9.577515, 1.2229309, -56.44773)
+pixel_size = 0.1
+texture_filter = 0
+texture = ExtResource("3_xh3fo")
+
+[node name="Vines" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.99965733, -0.02617695, 0, 0.02617695, 0.99965733, -1.4875374, -8.496025, -55.14105)
+pixel_size = 0.1
+texture = ExtResource("4_o8m08")
+
+[node name="Vines2" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.99965733, -0.02617695, 0, 0.02617695, 0.99965733, -5.9865484, -4.607616, -10.019186)
+pixel_size = 0.1
+texture = ExtResource("5_imo6l")
+
+[node name="Vines3" type="Sprite3D" parent="."]
+transform = Transform3D(0.64194494, 0.766488, -0.020071195, -0.76675075, 0.64172494, -0.01680416, 0, 0.02617695, 0.99965733, -2.6642637, -7.919432, -10.019186)
+pixel_size = 0.1
+texture = ExtResource("5_imo6l")
+
+[node name="CinematicPlayer" parent="." instance=ExtResource("6_char")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)

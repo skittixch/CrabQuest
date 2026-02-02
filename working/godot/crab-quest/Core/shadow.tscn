@@ -1,0 +1,21 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Shader" path="res://Core/blob_shadow.gdshader" id="1_shader"]
+[ext_resource type="Script" path="res://Core/shadow.gd" id="2_script"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_shadow"]
+resource_local_to_scene = true
+render_priority = 0
+shader = ExtResource("1_shader")
+shader_parameter/shadow_color = Color(0, 0, 0, 0.4)
+shader_parameter/softness = 0.02
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_shadow"]
+resource_local_to_scene = true
+material = SubResource("ShaderMaterial_shadow")
+size = Vector2(2, 2)
+
+[node name="Shadow" type="MeshInstance3D"]
+cast_shadow = 0
+mesh = SubResource("PlaneMesh_shadow")
+script = ExtResource("2_script")

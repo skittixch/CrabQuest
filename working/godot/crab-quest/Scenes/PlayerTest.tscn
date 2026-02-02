@@ -1,0 +1,61 @@
+[gd_scene load_steps=10 format=3 uid="uid://player_test_scene"]
+
+[ext_resource type="PackedScene" uid="uid://core_player" path="res://Core/Player.tscn" id="1_player"]
+[ext_resource type="Script" path="res://Core/gameplay_camera.gd" id="2_camera"]
+[ext_resource type="PackedScene" path="res://Core/input_layer.tscn" id="3_input"]
+[ext_resource type="PackedScene" uid="uid://1bowvxdgmxdl" path="res://Core/weapon_ball.tscn" id="4_ball"]
+[ext_resource type="Script" path="res://Core/chain.gd" id="5_chain"]
+
+[sub_resource type="Environment" id="Environment_1"]
+background_mode = 1
+background_color = Color(0.1, 0.1, 0.15, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.4, 0.4, 0.45, 1)
+glow_enabled = true
+
+[sub_resource type="BoxMesh" id="BoxMesh_Floor"]
+size = Vector3(50, 0.1, 50)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_Floor"]
+albedo_color = Color(0.2, 0.2, 0.25, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_Floor"]
+size = Vector3(50, 0.1, 50)
+
+[node name="PlayerTest" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_1")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, -0.75, 0.433013, 0, 10, 0)
+shadow_enabled = true
+
+[node name="Floor" type="StaticBody3D" parent="."]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+mesh = SubResource("BoxMesh_Floor")
+surface_material_override/0 = SubResource("StandardMaterial3D_Floor")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("BoxShape3D_Floor")
+
+[node name="Player" parent="." node_paths=PackedStringArray("camera", "weapon_ball", "chain") instance=ExtResource("1_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+camera = NodePath("../GameplayCamera")
+weapon_ball = NodePath("../MorningstarPhysics")
+chain = NodePath("../Chain")
+
+[node name="GameplayCamera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 10, 10)
+script = ExtResource("2_camera")
+orbit_distance = 60.0
+orbit_fov = 10.0
+
+[node name="MorningstarPhysics" parent="." instance=ExtResource("4_ball")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 1, 0)
+
+[node name="Chain" type="Node3D" parent="."]
+script = ExtResource("5_chain")
+
+[node name="InputLayer" parent="." instance=ExtResource("3_input")]
