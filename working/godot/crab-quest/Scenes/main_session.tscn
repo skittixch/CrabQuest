@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://cj2m7k7u0sbrq"]
+[gd_scene load_steps=9 format=3 uid="uid://cj2m7k7u0sbrq"]
 
 [ext_resource type="Script" uid="uid://cbh0kt8xfo4mv" path="res://Scenes/main_session.gd" id="1_script"]
 [ext_resource type="PackedScene" path="res://Core/Player.tscn" id="2_player"]
@@ -6,12 +6,15 @@
 [ext_resource type="PackedScene" path="res://Core/input_layer.tscn" id="4_input"]
 [ext_resource type="PackedScene" uid="uid://1bowvxdgmxdl" path="res://Core/weapon_ball.tscn" id="5_weapon"]
 [ext_resource type="Script" uid="uid://cj48qrkctv52" path="res://Core/chain.gd" id="6_chain"]
-[ext_resource type="PackedScene" path="res://Systems/LiquidMeter/liquid_meter_ui.tscn" id="7_meter_ui"]
+[ext_resource type="PackedScene" path="res://Systems/LiquidMeter/health_hud.tscn" id="7_hud"]
+[ext_resource type="PackedScene" path="res://Systems/LiquidMeter/fps_counter.tscn" id="8_fps"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_script")
 
-[node name="LiquidMeterUI" parent="." instance=ExtResource("7_meter_ui")]
+[node name="HealthHUD" parent="." instance=ExtResource("7_hud")]
+
+[node name="FPSCounter" parent="." instance=ExtResource("8_fps")]
 
 [node name="Player" parent="." node_paths=PackedStringArray("camera", "weapon_ball", "chain") instance=ExtResource("2_player")]
 camera = NodePath("../GameplayCamera")

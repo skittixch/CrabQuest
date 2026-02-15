@@ -38,6 +38,11 @@ var spike_mat: Material = null
 var chain_attachment: Node3D = null
 var chain_node: Node3D = null # Reference to the chain
 
+# Trails
+var normal_trail: Trail3D = null
+var fierce_trail: Trail3D = null
+var trail_chase_pos: Vector3 = Vector3.ZERO # For stabilized/smooth trail following
+
 # Bounce animation
 var bounce_time: float = 0.0
 var bounce_period: float = 1.5 # Tenths of seconds per bounce (1.5 = 0.15s per hop)
@@ -93,7 +98,57 @@ func _ready() -> void:
 		add_child(collision_shape)
 
 	_update_material()
+	_update_material()
 	_regenerate()
+	_setup_trails()
+
+func _setup_trails() -> void:
+	# Shared Material for vertex colors
+	var mat = StandardMaterial3D.new()
+	mat.shading_mode = StandardMaterial3D.SHADING_MODE_UNSHADED
+	mat.vertex_color_use_as_albedo = true
+	mat.transparency = StandardMaterial3D.TRANSPARENCY_ALPHA
+	
+	# 1. Normal Ribbon Trail
+	normal_trail = Trail3D.new()
+	normal_trail.name = "NormalTrail"
+	normal_trail.top_level = true
+	normal_trail.num_strands = 2
+	normal_trail.scatter_radius = 0.03
+	normal_trail.lifetime = 0.3
+	normal_trail.subdivisions = 4 # Increased for spline smoothing
+	normal_trail.width_curve = Curve.new()
+	normal_trail.width_curve.add_point(Vector2(0, 0.5))
+	normal_trail.width_curve.add_point(Vector2(1, 0.0))
+	
+	# White gradient (subtle)
+	var grad = Gradient.new()
+	grad.set_color(0, Color(1, 1, 1, 0.4))
+	grad.set_color(1, Color(1, 1, 1, 0.0))
+	normal_trail.color_gradient = grad
+	normal_trail.material_override = mat
+	
+	# 2. Intense Inner Trail (for fierce movements)
+	fierce_trail = Trail3D.new()
+	fierce_trail.name = "FierceTrail"
+	fierce_trail.top_level = true
+	fierce_trail.num_strands = 3
+	fierce_trail.scatter_radius = 0.01
+	fierce_trail.lifetime = 0.15
+	fierce_trail.subdivisions = 4 # Increased for spline smoothing
+	fierce_trail.width_curve = Curve.new() # Reuse or new curve? Default is fine but let's be explicit
+	fierce_trail.width_curve.add_point(Vector2(0, 0.6))
+	fierce_trail.width_curve.add_point(Vector2(1, 0.0))
+	
+	# Fierce gradient (slightly brighter start)
+	var fierce_grad = Gradient.new()
+	fierce_grad.set_color(0, Color(1, 1, 1, 0.6))
+	fierce_grad.set_color(1, Color(1, 1, 1, 0.0))
+	fierce_trail.color_gradient = fierce_grad
+	fierce_trail.material_override = mat
+	
+	add_child(normal_trail)
+	add_child(fierce_trail)
 
 func _update_material() -> void:
 	if not visual_sphere: return
@@ -189,6 +244,25 @@ func get_effective_radius() -> float:
 
 func _physics_process(delta: float) -> void:
 	_update_fog_darkness(delta)
+	
+	# Update trails
+	if visual_sphere:
+		if trail_chase_pos == Vector3.ZERO:
+			trail_chase_pos = visual_sphere.global_position
+			
+		# "Stroke Stabilization" - trails lag slightly for smoother curves
+		trail_chase_pos = trail_chase_pos.lerp(visual_sphere.global_position, delta * 20.0)
+		
+		var speed = linear_velocity.length()
+		
+		# Main trail (> 14.5 - +20% threshold)
+		if normal_trail and speed > 14.5:
+			normal_trail.append_point(trail_chase_pos)
+			
+		# Fierce trail (> 26.5 - +20% threshold)
+		if fierce_trail and speed > 26.5:
+			fierce_trail.append_point(trail_chase_pos)
+		
 	# --- BOUNCY PUPPY-HOP ANIMATION ---
 	var speed = linear_velocity.length()
 	if speed > 1.0 and visual_sphere:
@@ -265,6 +339,8 @@ func _on_body_entered(body: Node) -> void:
 		# Stomach damage feedback
 		if body.is_in_group("World"):
 			_on_world_hit(global_position)
+			if impact_speed > 10.0:
+				Input.vibrate_handheld(20) # Light tactile tick for wall slams
 
 func _spawn_sparks(pos: Vector3) -> void:
 	if not sparks_scene: return
@@ -292,6 +368,7 @@ func _on_stomach_hit(_pos: Vector3) -> void:
 
 func _on_enemy_hit(enemy: Node) -> void:
 	# --- HIT FLOW ---
+	Input.vibrate_handheld(80) # Satisfying impact buzz
 	_spawn_sparks(enemy.global_position)
 
 	# Get impact velocity
@@ -321,6 +398,7 @@ func _on_enemy_hit(enemy: Node) -> void:
 
 func _on_treasure_hit(treasure: Node) -> void:
 	if treasure.get("is_open"): return
+	Input.vibrate_handheld(50) # Light impact
 	_spawn_sparks(treasure.global_position)
 	
 	var impact_vel = linear_velocity
@@ -348,6 +426,7 @@ func smash_to(target_pos: Vector3) -> void:
 	var dir = to_target.normalized()
 	
 	# 2. Apply a massive impulse
+	Input.vibrate_handheld(150) # Heavy charge up/smash
 	# We use a strength that scales a bit with distance but has a high floor
 	var smash_strength = 60.0 + clamp(dist * 5.0, 0, 40.0)
 	

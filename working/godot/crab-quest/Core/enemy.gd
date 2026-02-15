@@ -414,38 +414,23 @@ func _on_body_entered(body: Node) -> void:
 		push_dir.y = 0
 		apply_central_impulse(push_dir * 10.0)
 		
-		if get_tree().root.has_node("ProceduralAudio"):
-			var pa = get_tree().root.get_node("ProceduralAudio")
-			if pa.has_method("play_tick"):
-				pa.call("play_tick", 1, 800.0) 
-		
-		var main_node = body.get_parent()
-		if main_node and main_node.has_method("apply_knockback"):
-			var force = 18.0 if is_zombie else 12.0
-			main_node.apply_knockback(-push_dir * force)
-		elif get_tree().current_scene.has_method("apply_knockback"):
-			var force = 18.0 if is_zombie else 12.0
-			get_tree().current_scene.apply_knockback(-push_dir * force)
-		
-		var viewport_ref = get_viewport()
-		if viewport_ref:
-			var cam = viewport_ref.get_camera_3d()
-			if cam and cam.has_method("add_shake"):
-				cam.add_shake(0.5)
-		
-		var main = get_tree().get_first_node_in_group("Main")
-		if main and main.tokens > 0:
-			var stolen = randi_range(1, 3)
-			stolen = min(stolen, main.tokens)
-			main.tokens -= stolen
-			main._update_token_ui()
-			stolen_tokens += stolen
-			steal_cooldown = 2.0 
-			
-			if get_tree().root.has_node("ProceduralAudio"):
-				get_tree().root.get_node("ProceduralAudio").call("play_tick", 0, 600.0) 
-		
 		# DEAL DAMAGE
-		if body.has_method("take_damage"):
-			var damage_amount = 15.0 if is_zombie else 5.0
-			body.take_damage(damage_amount)
+		var hit_accepted = false
+		if body.has_method("receive_hit"):
+			var damage = 20.0 if not is_zombie else 40.0
+			hit_accepted = body.receive_hit(global_position, damage)
+			
+		# TOKEN STEALING (Only if damage was actually dealt/accepted)
+		if hit_accepted:
+			var main_node = get_tree().get_first_node_in_group("Main")
+			if main_node and main_node.get("tokens") > 0 and steal_cooldown <= 0:
+				var stolen = randi_range(1, 3)
+				stolen = min(stolen, main_node.tokens)
+				main_node.tokens -= stolen
+				if main_node.has_method("_update_token_ui"):
+					main_node._update_token_ui()
+				stolen_tokens += stolen
+				steal_cooldown = 2.0 
+				
+				if get_tree().root.has_node("ProceduralAudio"):
+					get_tree().root.get_node("ProceduralAudio").call("play_tick", 0, 600.0)

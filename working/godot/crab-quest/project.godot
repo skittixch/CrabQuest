@@ -8,11 +8,15 @@
 
 config_version=5
 
+[animation]
+
+compatibility/default_parent_skeleton_in_mesh_instance_3d=true
+
 [application]
 
 config/name="CrabQuest"
 run/main_scene="uid://cu42aydggo5i2"
-config/features=PackedStringArray("4.5", "GL Compatibility")
+config/features=PackedStringArray("4.6", "GL Compatibility")
 config/icon="res://icon.svg"
 
 [display]
@@ -26,4 +30,7 @@ window/handheld/orientation=1
 
 textures/canvas_textures/default_texture_filter=0
 renderer/rendering_method="gl_compatibility"
-renderer/rendering_method.mobile="gl_compatibility"
+anti_aliasing/quality/msaa_3d=2
+anti_aliasing/quality/use_debanding=true
+textures/vram_compression/import_astc=true
+physics/3d/run_on_separate_thread=true

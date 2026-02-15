@@ -114,18 +114,25 @@ func _update_trail_mesh() -> void:
 	if points.size() < 2:
 		return
 	
-	# Generate subdivided path for smoothness
+	# Generate subdivided path using Cubic Interpolation (Spline)
 	var smooth_points: Array[Vector3] = []
 	var smooth_times: Array[float] = []
 	
 	for i in range(points.size() - 1):
-		smooth_points.append(points[i])
+		var p0 = points[i-1] if i > 0 else points[i]
+		var p1 = points[i]
+		var p2 = points[i+1]
+		var p3 = points[i+2] if i < points.size() - 2 else points[i+1]
+		
+		smooth_points.append(p1)
 		smooth_times.append(point_times[i])
 		
-		# Linear subdivision
+		# Cubic subdivision
 		for s in range(1, subdivisions + 1):
 			var t = float(s) / (subdivisions + 1)
-			smooth_points.append(points[i].lerp(points[i+1], t))
+			# standard cubic_interpolate(b, pre_a, post_b, weight)
+			# maps to: p1.cubic_interpolate(p2, p0, p3, t)
+			smooth_points.append(p1.cubic_interpolate(p2, p0, p3, t))
 			smooth_times.append(lerp(point_times[i], point_times[i+1], t))
 			
 	smooth_points.append(points[points.size() - 1])

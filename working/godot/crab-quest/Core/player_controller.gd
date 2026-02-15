@@ -30,7 +30,7 @@ var weapon_target_pos: Vector3 = Vector3.ZERO
 var current_max_range: float = 4.0
 
 @export_group("Stats")
-@export var max_health: float = 100.0
+@export var max_health: float = 300.0
 @export var iframe_duration: float = 1.0
 @onready var health: float = max_health
 var iframe_timer: float = 0.0
@@ -56,6 +56,19 @@ func _ready() -> void:
 	# Pass-through exception
 	if is_instance_valid(weapon_ball):
 		weapon_ball.add_collision_exception_with(self)
+	
+	# Connect Pickup Sensor
+	var sensor = get_node_or_null("PickupSensor")
+	if sensor:
+		sensor.body_entered.connect(_on_pickup_entered)
+
+func _on_pickup_entered(body: Node3D) -> void:
+	if body.has_method("collect"):
+		var recovered = body.collect()
+		if recovered > 0:
+			heal(recovered)
+			if character_visuals:
+				character_visuals.play_heal_effect()
 
 func _on_movement_input(_velocity: Vector2) -> void:
 	pass # Handled in physics process for continuous update
@@ -255,7 +268,49 @@ func take_damage(amount: float) -> void:
 	if health <= 0:
 		_die()
 
+## receive_hit
+## The central entry point for all combat damage. 
+## Handles iframes and feedback.
+func receive_hit(attacker_pos: Vector3, damage_amount: float = 25.0) -> bool:
+	if iframe_timer > 0:
+		return false # ABSOLUTELY NO damage or feedback during iframes
+		
+	# 1. FEEDBACK
+	# Vibration (Haptics)
+	Input.vibrate_handheld(200) # Moderate buzz for damage
+	
+	# Screen Shake
+	var viewport = get_viewport()
+	if viewport:
+		var cam = viewport.get_camera_3d()
+		if cam and cam.has_method("add_shake"):
+			cam.add_shake(0.5)
+			
+	# Sound (Tick)
+	if get_tree().root.has_node("ProceduralAudio"):
+		get_tree().root.get_node("ProceduralAudio").call("play_tick", 1, 800.0)
+		
+	# Knockback
+	var push_dir = (global_position - attacker_pos).normalized()
+	push_dir.y = 0
+	knockback_velocity = push_dir * 12.0
+	
+	# 2. APPLY
+	take_damage(damage_amount)
+	return true
+
+func heal(amount: float) -> void:
+	health = min(max_health, health + amount)
+	# Emit signal with negative damage_amount (0) to trigger a non-splash sync
+	took_damage.emit(health, 0)
+
 func _die() -> void:
 	# Basic death logic - can be expanded
 	disable_controls()
 	print("Player DIED!")
+	
+	# Delay for animation/drama
+	await get_tree().create_timer(2.0).timeout
+	
+	# Reload Scene
+	get_tree().reload_current_scene()

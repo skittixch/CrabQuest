@@ -12,6 +12,24 @@ var time_passed: float = 0.0
 var current_velocity: Vector3 = Vector3.ZERO
 var weapon_pull_dir: Vector3 = Vector3.ZERO
 
+var character_shader_code = """
+shader_type spatial;
+render_mode unshaded;
+
+uniform vec4 flash_color : source_color = vec4(1.0, 1.0, 1.0, 1.0);
+uniform float flash_intensity : hint_range(0.0, 1.0) = 0.0;
+
+void fragment() {
+    // Standard vertex color support
+    vec3 base_color = COLOR.rgb;
+    
+    // Mix with flash
+    vec3 final_color = mix(base_color, flash_color.rgb, flash_intensity);
+    
+    ALBEDO = final_color;
+}
+"""
+
 func _ready() -> void:
 	# Add shadow
 	var shadow_scene = load("res://Core/shadow.tscn")
@@ -27,11 +45,11 @@ func _ready() -> void:
 				model_root = child
 				break
 	
-	# Standard Material setup - Unshaded for pure vertex colors
-	var mat = StandardMaterial3D.new()
-	mat.shading_mode = StandardMaterial3D.SHADING_MODE_UNSHADED
-	mat.vertex_color_use_as_albedo = true
-	mat.albedo_color = Color.WHITE
+	# Create ShaderMaterial for character
+	var shader = Shader.new()
+	shader.code = character_shader_code
+	var mat = ShaderMaterial.new()
+	mat.shader = shader
 	set_skin_material(mat)
 
 func _physics_process(delta: float) -> void:
@@ -82,3 +100,39 @@ func cough() -> void:
 		var tween = create_tween()
 		tween.tween_property(model_root, "scale", Vector3(1.5, 1.5, 1.5), 0.05).set_trans(Tween.TRANS_QUAD)
 		tween.tween_property(model_root, "scale", Vector3.ONE, 0.1).set_trans(Tween.TRANS_BOUNCE)
+
+func play_heal_effect() -> void:
+	# Find mesh node dynamically
+	var mesh = find_child("body*", true, false)
+	if not mesh:
+		for child in get_all_children(model_root):
+			if child is MeshInstance3D:
+				mesh = child
+				break
+	
+	if mesh and mesh is MeshInstance3D:
+		var mat = mesh.material_override as ShaderMaterial
+		if mat:
+			var tween = create_tween()
+			if not tween: return # Safety check
+			
+			# Green Flash for healing - Overbright for that "wow" effect
+			var heal_color = Color(0.2, 2.5, 0.4, 1.0)
+			mat.set_shader_parameter("flash_color", heal_color)
+			
+			# Sequence: Quick flash up, then fade back
+			tween.tween_property(mat, "shader_parameter/flash_intensity", 0.8, 0.05)
+			
+			# Use a separate tween step instead of set_delay if it's being flaky, 
+			# or just do a standard property tween to 0.
+			tween.tween_property(mat, "shader_parameter/flash_intensity", 0.0, 0.4)
+
+# Helper to find all children recursively
+func get_all_children(node: Node) -> Array:
+	if not node: return []
+	var nodes = []
+	for child in node.get_children():
+		nodes.append(child)
+		if child.get_child_count() > 0:
+			nodes.append_array(get_all_children(child))
+	return nodes
